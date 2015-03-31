@@ -24,6 +24,8 @@ namespace DictionaryServer
                     return Remove(message);
                 case ActionType.Edit:
                     return Edit(message);
+                case ActionType.SearchByWord:
+                    return SearchByKey(message);
             }
             return null;
         }
@@ -36,7 +38,7 @@ namespace DictionaryServer
                 dictionary.Add(message.Key, message.Value);
                 DictionaryToJson();
                 Console.WriteLine(DateTime.Now + " - Successfully added new entry '{0}'", message.Key);
-                return new Message { Result = "Successfully added new entry" + message.Key };
+                return new Message { Result = "Successfully added new entry '" + message.Key + "'"};
             }
             catch (ArgumentException e)
             {
@@ -53,7 +55,7 @@ namespace DictionaryServer
                 dictionary.Remove(message.Key);
                 DictionaryToJson();
                 Console.WriteLine(DateTime.Now + " - Successfully removed entry '{0}'", message.Key);
-                return new Message {Result = "Successfully removed entry" + message.Key};
+                return new Message { Result = "Successfully removed entry '" + message.Key + "'" };
             }
             catch (ArgumentNullException e)
             {
@@ -68,7 +70,31 @@ namespace DictionaryServer
             dictionary[message.Key] = message.Value;
             DictionaryToJson();
             Console.WriteLine(DateTime.Now + " - Successfully edited entry '{0}'", message.Key);
-            return new Message {Result = "Successfully edited entry" + message.Key};
+            return new Message { Result = "Successfully edited entry '" + message.Key + "'" };
+        }
+
+        //private static Message SearchByLetter(Message message)
+        //{
+        //    DictionaryFromJson();
+        //    var m = dictionary.Keys.Where(k => k[0] == message.Key[0]);
+        //    if (m != null)
+        //    {
+        //        Console.WriteLine(DateTime.Now + " - Attempt to get entry by key {0} unsuccessful", message.Key);
+        //        return new Message {Key = m, Value = dictionary[m], Result = "Something found"};
+        //    }
+        //    Console.WriteLine(DateTime.Now + " - Attempt to get entry by key {0} successful", message.Key);
+        //    return new Message {Result = "Nothing similar"};
+        //}
+
+        private static Message SearchByKey(Message message)
+        {
+            DictionaryFromJson();
+            if (dictionary.Keys.Contains(message.Key))
+            {
+                Console.WriteLine(DateTime.Now + " - Attempt to get entry by key '{0}' successful", message.Key);
+                return new Message {Key = message.Key, Value = dictionary[message.Key], Result = "Something found"};
+            }
+            return new Message{Result = "Nothing found"};
         }
 
         private static void DictionaryFromJson()

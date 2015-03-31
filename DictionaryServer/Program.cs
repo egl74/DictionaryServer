@@ -16,9 +16,7 @@ namespace DictionaryServer
     {
         static void Main(string[] args)
         {
-            {
-                //MessageEnhacer.Add(new Message{Key="Антон", Value = "гандон"});
-                MessageEnhacer.Enhance(new Message{Key = "Е", Action = ActionType.Remove});
+            { 
                 TcpListener server = null;
                 try
                 {
@@ -30,46 +28,38 @@ namespace DictionaryServer
 
                     // Start listening for client requests.
                     server.Start();
-
-                    // Buffer for reading data
-                    Byte[] bytes = new Byte[512];
-                    String data = null;
-
+                    
                     // Enter the listening loop. 
                     while (true)
                     {
                         Console.Write("Waiting for a connection... ");
 
                         // Perform a blocking call to accept requests. 
-                        // You could also user server.AcceptSocket() here.
                         TcpClient client = server.AcceptTcpClient();
                         Console.WriteLine("Connected!");
-
-                        data = null;
-
+                        
                         // Get a stream object for reading and writing
                         NetworkStream stream = client.GetStream();
+                        
+                        //receive length of query
+                        byte[] length = new byte[4];
+                        stream.Read(length, 0, sizeof (int));
 
-                        int i;
+                        Byte[] bytes = new Byte[BitConverter.ToInt32(length, 0)];
 
                         // Loop to receive all the data sent by the client. 
-                        while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
+                        while ((stream.Read(bytes, 0, bytes.Length)) != 0)
                         {
-                            // Translate data bytes to a ASCII string.
-                            //data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
                             Console.WriteLine("Data received");
-                            //Console.WriteLine("Received: {0}", data);
 
                             // Process the data sent by the client.
-                            //data = data.ToUpper();
 
                             var m = (Message)DeserializeFromStream(new MemoryStream(bytes));
-
                             m = MessageEnhacer.Enhance(m);
-
                             byte[] msg = SerializeToStream(m).ToArray();
 
-                            //byte[] msg = System.Text.Encoding.ASCII.GetBytes(data);
+                            //send back length of a response
+                            stream.Write(BitConverter.GetBytes(msg.Length), 0, sizeof(int));
 
                             // Send back a response.
                             stream.Write(msg, 0, msg.Length);
