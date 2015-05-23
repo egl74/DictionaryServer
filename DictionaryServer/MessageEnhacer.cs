@@ -26,6 +26,8 @@ namespace DictionaryServer
                     return Edit(message);
                 case ActionType.SearchByWord:
                     return SearchByKey(message);
+                case ActionType.SearchByLetter:
+                    return SearchByLetter(message);
             }
             return null;
         }
@@ -73,28 +75,34 @@ namespace DictionaryServer
             return new Message { Result = "Successfully edited entry '" + message.Key + "'" };
         }
 
-        //private static Message SearchByLetter(Message message)
-        //{
-        //    DictionaryFromJson();
-        //    var m = dictionary.Keys.Where(k => k[0] == message.Key[0]);
-        //    if (m != null)
-        //    {
-        //        Console.WriteLine(DateTime.Now + " - Attempt to get entry by key {0} unsuccessful", message.Key);
-        //        return new Message {Key = m, Value = dictionary[m], Result = "Something found"};
-        //    }
-        //    Console.WriteLine(DateTime.Now + " - Attempt to get entry by key {0} successful", message.Key);
-        //    return new Message {Result = "Nothing similar"};
-        //}
+        private static Message SearchByLetter(Message message)
+        {
+            DictionaryFromJson();
+            var m = dictionary.Where(e => message.Key[0] == e.Key[0]).ToDictionary(d => d.Key, d => d.Value);
+            if (m.Count > 0)
+            {
+                Console.WriteLine(DateTime.Now + " - Attempt to get entry by key {0} unsuccessful", message.Key);
+                return new Message { Dictionary = m, Result = "Something found" };
+            }
+            Console.WriteLine(DateTime.Now + " - Attempt to get entry by key {0} successful", message.Key);
+            return new Message { Result = "Nothing found" };
+        }
 
         private static Message SearchByKey(Message message)
         {
             DictionaryFromJson();
-            if (dictionary.Keys.Contains(message.Key))
+            if (dictionary.Keys.Any(k => k.Contains(message.Key)))
             {
                 Console.WriteLine(DateTime.Now + " - Attempt to get entry by key '{0}' successful", message.Key);
-                return new Message {Key = message.Key, Value = dictionary[message.Key], Result = "Something found"};
+                return new Message {Key = message.Key, Value = dictionary.First(k => k.Key.Contains(message.Key)).Value, Result = "Something found"};
             }
             return new Message{Result = "Nothing found"};
+        }
+
+        private static Message GetDictionary()
+        {
+            DictionaryFromJson();
+            return new Message{Dictionary = dictionary};
         }
 
         private static void DictionaryFromJson()
