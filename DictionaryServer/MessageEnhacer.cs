@@ -28,6 +28,8 @@ namespace DictionaryServer
                     return SearchByKey(message);
                 case ActionType.SearchByLetter:
                     return SearchByLetter(message);
+                case ActionType.GetAllDictionary:
+                    return GetDictionary();
             }
             return null;
         }
@@ -54,25 +56,38 @@ namespace DictionaryServer
             try
             {
                 DictionaryFromJson();
-                dictionary.Remove(message.Key);
-                DictionaryToJson();
-                Console.WriteLine(DateTime.Now + " - Successfully removed entry '{0}'", message.Key);
-                return new Message { Result = "Successfully removed entry '" + message.Key + "'" };
+                if (dictionary.ContainsKey(message.Key))
+                {
+                    dictionary.Remove(message.Key);
+                    DictionaryToJson();
+                    Console.WriteLine(DateTime.Now + " - Successfully removed entry '{0}'", message.Key);
+                    return new Message { Result = "Successfully removed entry '" + message.Key + "'" };
+                }
+                Console.WriteLine(DateTime.Now + " - Attempt of removing an entry that doesn't exist '{0}'", message.Key);
+                return new Message { Result = "Attempt of removing an entry that doesn't exist " + message.Key };
             }
             catch (ArgumentNullException e)
             {
-                Console.WriteLine(DateTime.Now + " - Attempt of removing an entry that doesn't exist '{0}'", message.Key);
+                Console.WriteLine(DateTime.Now + " - Error occurred when try to perform an entry remove '{0}'", message.Key);
                 return new Message { Result = e.Message + " " + message.Key };
             }
         }
 
         private static Message Edit(Message message)
         {
-            DictionaryFromJson();
-            dictionary[message.Key] = message.Value;
-            DictionaryToJson();
-            Console.WriteLine(DateTime.Now + " - Successfully edited entry '{0}'", message.Key);
-            return new Message { Result = "Successfully edited entry '" + message.Key + "'" };
+            try
+            {
+                DictionaryFromJson();
+                dictionary[message.Key] = message.Value;
+                DictionaryToJson();
+                Console.WriteLine(DateTime.Now + " - Successfully edited entry '{0}'", message.Key);
+                return new Message {Result = "Successfully edited entry '" + message.Key + "'"};
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(DateTime.Now + " - Entry was not edited '{0}'", message.Key);
+                return new Message { Result = "Entry was not edited '" + message.Key + "'" };
+            }
         }
 
         private static Message SearchByLetter(Message message)
@@ -102,7 +117,7 @@ namespace DictionaryServer
         private static Message GetDictionary()
         {
             DictionaryFromJson();
-            return new Message{Dictionary = dictionary};
+            return new Message{Dictionary = dictionary, Result = "Dictionary loaded"};
         }
 
         private static void DictionaryFromJson()
