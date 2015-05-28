@@ -55,7 +55,7 @@ namespace DictionaryServer
                             // Process the data sent by the client.
 
                             var m = (Message)DeserializeFromStream(new MemoryStream(bytes));
-                            m = MessageEnhacer.Enhance(m);
+                            m = MessageHandler.Enhance(m);
                             byte[] msg = SerializeToStream(m).ToArray();
 
                             //send back length of a response

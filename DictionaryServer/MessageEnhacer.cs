@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace DictionaryServer
 {
-    internal static class MessageEnhacer
+    internal static class MessageHandler
     {
         private static Dictionary<string, string> dictionary = new Dictionary<string, string>();
         private static readonly string path = Environment.CurrentDirectory + "\\dictionary.json";
